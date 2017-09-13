@@ -37,7 +37,7 @@ public class BluetoothChatService {
     public static final int STATE_NONE = 0; // 아무것도 하지 않고 있는 상태를 표시.
     public static final int STATE_LISTEN = 1; // 연결이 들어오기를 대기.
     public static final int STATE_CONNECTING = 2; // 외부에 연결을 시도하고 있는 상태.
-    public static final int STATE_CONNECT = 3; // 원격 기기와 연결되어 있는 상태.
+    public static final int STATE_CONNECTED = 3; // 원격 기기와 연결되어 있는 상태.
 
     public BluetoothChatService(Context context, Handler handler) {
 //        블루투스 채팅이 시작될 때.
@@ -126,6 +126,93 @@ public class BluetoothChatService {
 
         setState(STATE_CONNECTING);
 
+    }
+
+//    연결된 상태를 설정 => 실제 통신
+//    재료가 2개.
+//    1. 블루투스 소켓 : 기기와 연결된 통신 통로.
+//    2. 블루투스 기기 : 실제로 연결한 기기
+    public synchronized void connected(BluetoothSocket socket, BluetoothDevice device) {
+
+//        연결 시도 중이면 취소
+        if (mConnectThread != null) {
+
+//                mConnectThread.cancel();
+            mConnectThread = null;
+        }
+//        연결 되어있던것도 취소
+
+        if (mConnectedThread != null) {
+//            mConnectedThread.cancel();
+            mConnectedThread = null;
+        }
+
+//        수신 대기중인것도 취소
+
+        if (mAcceptThread != null) {
+//            mAcceptThread.cancel();
+            mAcceptThread = null;
+        }
+
+//        TODO - 연결된 상태의 쓰레드 작업 필요
+//        mConnectedThread = new ConnectedThread(socket);
+        mConnectedThread.start();
+
+        setState(STATE_CONNECTED);
+
+    }
+
+//    모든 쓰레드를 정지하고자 할때 실행.
+
+    public synchronized void stop() {
+
+//        연결 시도 중이면 취소
+        if (mConnectThread != null) {
+
+//                mConnectThread.cancel();
+            mConnectThread = null;
+        }
+//        연결 되어있던것도 취소
+
+        if (mConnectedThread != null) {
+//            mConnectedThread.cancel();
+            mConnectedThread = null;
+        }
+
+//        수신 대기중인것도 취소
+
+        if (mAcceptThread != null) {
+//            mAcceptThread.cancel();
+            mAcceptThread = null;
+        }
+
+//        현재 아무것도 하지 않고 있다는것을 명시.
+        setState(STATE_NONE);
+    }
+
+//    메세지를 상대 기기에 전달하는 기능
+
+    public void write(byte[] out) {
+        ConnectedThread r;
+        synchronized (this) {
+            if (mState != STATE_CONNECTED) {
+//                연결되지 않은상태이므로 종료
+                return;
+            }
+            r = mConnectedThread;
+        }
+//        연결된 쓰레드에서 상대에게 메세지를 전달 메쏘드.
+//        r.write(out);
+    }
+
+//    연결 실패 시 공지
+    private void connectionFailed() {
+        setState(STATE_NONE);
+    }
+
+//    통신 중간에 연결이 끊겼을때
+    private void connetionLost() {
+        setState(STATE_NONE);
     }
 
 
