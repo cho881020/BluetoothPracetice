@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.TextView;
 
 import java.util.List;
 
@@ -39,6 +40,17 @@ public class BtPairedDeviceAdapter  extends ArrayAdapter<BtDevice> {
         if (row == null) {
             row = inf.inflate(R.layout.btdevice_list_item, null);
         }
+
+
+        BtDevice data = mList.get(position);
+
+        TextView deviceNameTxt = (TextView) row.findViewById(R.id.deviceNameTxt);
+        TextView deviceAddressTxt = (TextView) row.findViewById(R.id.deviceAddressTxt);
+
+        deviceNameTxt.setText(data.getDeviceName());
+        deviceAddressTxt.setText(data.getDeviceAddress());
+
+
         return row;
     }
 }
